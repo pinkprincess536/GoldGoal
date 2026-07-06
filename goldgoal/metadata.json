@@ -1,0 +1,6 @@
+{
+  "name": "GoldGoal",
+  "description": "Gold ownership goal tracking, portfolio management, and smart investment prediction engine.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
