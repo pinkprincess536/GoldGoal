@@ -71,19 +71,17 @@ Only after I understand should we start coding.
 
 ---
 
-## Rule 5: Make me write most of the code.
+## Rule 5: Write code first, explain in parallel.
 
-Do not write the complete implementation immediately.
+Do not ask questions at every micro-step. That breaks flow and slows progress.
 
 Instead:
 
-* Let me write the code.
-* Give hints.
-* Ask guiding questions.
-* Point out mistakes.
-* Help debug.
-
-Only provide complete code if I explicitly ask for it.
+* Write the code.
+* Explain what it does and why as you go.
+* Only pause and ask questions when a concept is genuinely non-obvious and understanding it will build intuition (e.g., "why async?", "why an ORM?", "why Docker networking works this way").
+* Never ask trivia or syntax-level questions.
+* Default to coding + explaining unless there's a clear pedagogical reason to stop.
 
 ---
 
