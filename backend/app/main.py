@@ -2,19 +2,13 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.core.database import engine, Base, SessionLocal
-from app.routers import auth, portfolio, goal, price, alert
-from app.services.gold_price import seed_prices
+from app.core.database import engine, Base
+from app.routers import auth, portfolio, goal
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
-    db = SessionLocal()
-    try:
-        seed_prices(db)
-    finally:
-        db.close()
     yield
 
 
@@ -22,8 +16,6 @@ app = FastAPI(lifespan=lifespan)
 app.include_router(auth.router)
 app.include_router(portfolio.router)
 app.include_router(goal.router)
-app.include_router(price.router)
-app.include_router(alert.router)
 
 
 @app.get("/health")
