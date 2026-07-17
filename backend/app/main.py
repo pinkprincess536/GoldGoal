@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.core.database import engine, Base, SessionLocal
 from app.routers import auth, portfolio, goal, price, alert
@@ -24,6 +25,8 @@ app.include_router(portfolio.router)
 app.include_router(goal.router)
 app.include_router(price.router)
 app.include_router(alert.router)
+
+Instrumentator().instrument(app).expose(app)
 
 
 @app.get("/health")
