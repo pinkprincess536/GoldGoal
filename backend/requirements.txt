@@ -8,4 +8,3 @@ pydantic[email]
 pydantic-settings
 requests
 joblib
-prometheus-fastapi-instrumentator
