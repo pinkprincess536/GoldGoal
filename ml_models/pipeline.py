@@ -24,6 +24,7 @@ Steps:
 import os
 import sys
 import warnings
+import joblib
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -186,6 +187,30 @@ def plot_metrics_bar(metrics_df, filename):
     print(f"[Plot] Saved: {filename}")
 
 
+# ─── Model persistence ────────────────────────────────────────────────────────
+
+def _save_models(ridge_model, ridge_scaler, lgbm_model, knn_model, knn_scaler,
+                 svr_model, svr_scaler, svr_y_mean, svr_y_std, hmm_model,
+                 feature_cols, weights):
+    """Save all trained models and metadata for later inference."""
+    models_dir = os.path.join(OUTPUT_DIR, "models")
+    os.makedirs(models_dir, exist_ok=True)
+
+    joblib.dump(ridge_model, os.path.join(models_dir, "ridge_model.pkl"))
+    joblib.dump(ridge_scaler, os.path.join(models_dir, "ridge_scaler.pkl"))
+    joblib.dump(lgbm_model, os.path.join(models_dir, "lgbm_model.pkl"))
+    joblib.dump(knn_model, os.path.join(models_dir, "knn_model.pkl"))
+    joblib.dump(knn_scaler, os.path.join(models_dir, "knn_scaler.pkl"))
+    joblib.dump(svr_model, os.path.join(models_dir, "svr_model.pkl"))
+    joblib.dump(svr_scaler, os.path.join(models_dir, "svr_scaler.pkl"))
+    joblib.dump((svr_y_mean, svr_y_std), os.path.join(models_dir, "svr_stats.pkl"))
+    joblib.dump(hmm_model, os.path.join(models_dir, "hmm_model.pkl"))
+    joblib.dump(feature_cols, os.path.join(models_dir, "feature_cols.pkl"))
+    joblib.dump(weights, os.path.join(models_dir, "ensemble_weights.pkl"))
+
+    print(f"[Models] Saved 11 artifacts to: {models_dir}")
+
+
 # ─── Main pipeline ───────────────────────────────────────────────────────────
 
 def run_pipeline():
@@ -298,6 +323,11 @@ def run_pipeline():
     # Disagreement
     disagree = model_disagreement({k: v for k, v in test_price_preds.items() if k != "Ensemble"})
     print(f"[Ensemble] Mean model disagreement: Rs {disagree.mean():,.0f}, Max: Rs {disagree.max():,.0f}")
+
+    # Step 9b: Persist trained models for later inference
+    print("\n-- Step 9b: Saving trained models --")
+    _save_models(ridge_model, ridge_scaler, lgbm_model, knn_model, knn_scaler,
+                 svr_model, svr_scaler, svr_y_mean, svr_y_std, hmm_model, feature_cols, weights)
 
     # Step 10: Save outputs
     print("\n-- Step 10: Saving outputs --")

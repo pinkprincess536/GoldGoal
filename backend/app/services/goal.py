@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 
 from app.models.goal import Goal
 from app.schemas.goal import GoalCreate, GoalUpdate, GoalOut, GoalProgress
-from app.services.portfolio import get_purchases, CURRENT_GOLD_PRICE
+from app.services.portfolio import get_purchases
+from app.services.gold_price import get_latest_price
 
 
 def create_goal(db: Session, user_id: str, data: GoalCreate) -> Goal:
@@ -53,19 +54,29 @@ def delete_goal(db: Session, user_id: str, goal_id: str) -> bool:
     return True
 
 
-def get_progress(db: Session, user_id: str, goal_id: str) -> GoalProgress | None:
+def get_progress(db: Session, user_id: str, goal_id: str, use_prediction: bool = False) -> GoalProgress | None:
     goal = get_goal(db, user_id, goal_id)
     if not goal:
         return None
 
     purchases = get_purchases(db, user_id)
+    current_price = get_latest_price(db)
     acquired_grams = sum(p.grams for p in purchases)
     remaining_grams = max(goal.target_grams - acquired_grams, 0)
     completion_pct = round((acquired_grams / goal.target_grams) * 100, 1) if goal.target_grams > 0 else 0.0
-    estimated_cost_remaining = remaining_grams * CURRENT_GOLD_PRICE
+
+    # Use ML-predicted price for future cost estimates if available
+    future_price = current_price
+    if use_prediction:
+        from app.services.prediction import get_63day_prediction
+        pred = get_63day_prediction(db)
+        if pred:
+            future_price = pred["predicted_63d_price"]
+
+    estimated_cost_remaining = remaining_grams * future_price
 
     if goal.monthly_budget > 0:
-        grams_per_month = goal.monthly_budget / CURRENT_GOLD_PRICE
+        grams_per_month = goal.monthly_budget / future_price
         months_to_completion = remaining_grams / grams_per_month
         from datetime import timedelta
         estimated_date = datetime.now(timezone.utc).date() + timedelta(days=int(months_to_completion * 30))
@@ -80,7 +91,7 @@ def get_progress(db: Session, user_id: str, goal_id: str) -> GoalProgress | None
         acquired_grams=round(acquired_grams, 2),
         remaining_grams=round(remaining_grams, 2),
         completion_pct=round(completion_pct, 1),
-        current_gold_price=CURRENT_GOLD_PRICE,
+        current_gold_price=round(current_price, 2),
         estimated_cost_remaining=round(estimated_cost_remaining, 2),
         months_to_completion=months_val,
         estimated_completion_date=estimated_date,
