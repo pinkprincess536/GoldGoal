@@ -6,3 +6,4 @@ python-jose[cryptography]
 bcrypt
 pydantic[email]
 pydantic-settings
+requests
