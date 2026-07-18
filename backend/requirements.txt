@@ -7,3 +7,4 @@ bcrypt
 pydantic[email]
 pydantic-settings
 requests
+prometheus-fastapi-instrumentator
